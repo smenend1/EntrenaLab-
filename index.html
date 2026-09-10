@@ -16,6 +16,7 @@ main{max-width:980px;margin:auto;padding:14px}.view{display:none}.view.active{di
 label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}input,select,textarea{width:100%;padding:10px 11px;border:1px solid #d1d5db;border-radius:10px;background:#fff;font-size:16px}textarea{min-height:90px}button.primary{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:11px 14px;font-weight:800}button.secondary{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-weight:700}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.list{display:grid;gap:8px}.item{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}.pill{display:inline-block;background:#eef2ff;color:#3730a3;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}.insight{padding:12px;border-left:4px solid var(--accent);background:#eff6ff;border-radius:8px;margin:8px 0}.good{border-color:var(--good);background:#f0fdf4}.warn{border-color:var(--warn);background:#fffbeb}canvas{width:100%;height:260px}.tiny{font-size:11px}.danger{color:#b91c1c}
 @media(max-width:500px){main{padding:10px}.card{padding:13px}.kpi strong{font-size:19px}}
 .three{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.meter{height:8px;background:#e5e7eb;border-radius:8px;overflow:hidden}.meter i{display:block;height:100%;background:var(--accent)}.alert{border-color:#b91c1c;background:#fef2f2}
+.field{margin:0}.subtitle{margin:14px 0 4px;font-size:13px;font-weight:800;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -24,58 +25,466 @@ label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}input,selec
 <button data-tab="dashboard" class="active">Resumen</button><button data-tab="session">Nuevo entreno</button><button data-tab="recovery">Recuperación</button><button data-tab="profile">Perfil</button><button data-tab="history">Historial</button><button data-tab="data">Datos</button>
 </nav>
 <main>
+
 <section id="dashboard" class="view active">
-<div class="kpis" id="kpis"></div><div class="grid three" id="loadCards" style="margin-top:12px"></div>
+<div class="kpis" id="kpis"></div>
+<p class="subtitle">Carga de entrenamiento (running/trail/ciclismo/caminar)</p>
+<div class="grid three" id="loadCards"></div>
+<div id="strengthCard" style="margin-top:10px"></div>
 <div class="grid two" style="margin-top:12px">
 <div class="card"><h3>Ritmo medio</h3><canvas id="paceChart"></canvas></div>
 <div class="card"><h3>Distancia por sesión</h3><canvas id="distChart"></canvas></div>
 </div>
-<div class="card" style="margin-top:12px"><h3>Análisis del coach</h3><div id="insights"></div></div><div class="grid two" style="margin-top:12px"><div class="card"><h3>Zonas de frecuencia cardiaca</h3><div id="zones"></div></div><div class="card"><h3>Mejores marcas</h3><div id="pbs"></div></div></div>
+<div class="card" style="margin-top:12px"><h3>Análisis del coach</h3><div id="insights"></div></div>
+<div class="grid two" style="margin-top:12px">
+<div class="card"><h3>Zonas de frecuencia cardiaca</h3><div id="zones"></div></div>
+<div class="card"><h3>Zonas de potencia</h3><div id="powerZones"></div></div>
+</div>
+<div class="card" style="margin-top:12px"><h3>Mejores marcas</h3><div id="pbs"></div></div>
 </section>
+
 <section id="session" class="view">
 <div class="card"><h2>Registrar entrenamiento</h2>
 <form id="sessionForm">
-<div class="row"><div><label>Fecha</label><input type="date" id="date" required></div><div><label>Actividad</label><select id="activity"><option>Running</option><option>Trail</option><option>Ciclismo</option><option>Caminar</option><option>Fuerza</option><option>Otro</option></select></div><div><label>Tipo de sesión</label><select id="sessionType"><option value="easy">Rodaje suave</option><option value="tempo">Tempo / umbral</option><option value="intervals">Series</option><option value="long">Tirada larga</option><option value="recovery">Recuperación</option><option value="race">Competición/test</option><option value="strength">Fuerza</option><option value="other">Otro</option></select></div></div>
-<div class="row"><div><label>Distancia (km)</label><input type="number" step="0.01" min="0" id="distance" required></div><div><label>Tiempo total (min)</label><input type="number" step="0.01" min="0" id="duration" required></div></div>
-<div class="row"><div><label>Ritmo medio (min/km)</label><input type="text" id="avgPace" placeholder="Se calcula solo"></div><div><label>Ritmo/km más rápido</label><input type="text" id="maxPace" placeholder="ej. 4:35"></div></div>
-<div class="row"><div><label>Cadencia media (spm)</label><input type="number" id="cadence"></div><div><label>Potencia media (W)</label><input type="number" id="power"></div></div>
-<div class="row"><div><label>VO₂max estimado</label><input type="number" step="0.1" id="vo2max"></div><div><label>FC media (ppm)</label><input type="number" id="hrAvg"></div><div><label>FC máx. (ppm)</label><input type="number" id="hrMax"></div></div>
-<div class="row"><div><label>Desnivel + (m)</label><input type="number" id="elevation"></div><div><label>RPE / esfuerzo (1-10)</label><input type="number" min="1" max="10" id="rpe"></div></div>
-<details><summary>Minutos por zonas de FC (opcional)</summary><div class="row"><div><label>Z1</label><input type="number" min="0" id="z1"></div><div><label>Z2</label><input type="number" min="0" id="z2"></div><div><label>Z3</label><input type="number" min="0" id="z3"></div><div><label>Z4</label><input type="number" min="0" id="z4"></div><div><label>Z5</label><input type="number" min="0" id="z5"></div></div></details><label>Notas / sensaciones</label><textarea id="notes" placeholder="Sueño, molestias, terreno, sensaciones, series realizadas..."></textarea>
+<div class="row">
+<div class="field"><label for="date">Fecha</label><input type="date" id="date" required></div>
+<div class="field"><label for="activity">Actividad</label><select id="activity"><option>Running</option><option>Trail</option><option>Ciclismo</option><option>Caminar</option><option>Fuerza</option><option>Otro</option></select></div>
+<div class="field"><label for="sessionType">Tipo de sesión</label><select id="sessionType"><option value="easy">Rodaje suave</option><option value="tempo">Tempo / umbral</option><option value="intervals">Series</option><option value="long">Tirada larga</option><option value="recovery">Recuperación</option><option value="race">Competición/test</option><option value="strength">Fuerza</option><option value="other">Otro</option></select></div>
+</div>
+<div class="row">
+<div class="field"><label for="distance">Distancia (km)</label><input type="text" inputmode="decimal" id="distance" required></div>
+<div class="field"><label for="duration">Tiempo total (min)</label><input type="text" inputmode="decimal" id="duration" required></div>
+</div>
+<div class="row">
+<div class="field"><label for="avgPace">Ritmo medio (min/km)</label><input type="text" id="avgPace" placeholder="Se calcula solo"></div>
+<div class="field"><label for="maxPace">Ritmo/km más rápido</label><input type="text" id="maxPace" placeholder="ej. 4:35"></div>
+</div>
+<div class="row">
+<div class="field"><label for="cadence">Cadencia media (spm)</label><input type="text" inputmode="decimal" id="cadence"></div>
+<div class="field"><label for="power">Potencia media (W)</label><input type="text" inputmode="decimal" id="power"></div>
+</div>
+<div class="row">
+<div class="field"><label for="vo2max">VO₂max estimado</label><input type="text" inputmode="decimal" id="vo2max"></div>
+<div class="field"><label for="hrAvg">FC media (ppm)</label><input type="text" inputmode="decimal" id="hrAvg"></div>
+<div class="field"><label for="hrMax">FC máx. (ppm)</label><input type="text" inputmode="decimal" id="hrMax"></div>
+</div>
+<div class="row">
+<div class="field"><label for="elevation">Desnivel + (m)</label><input type="text" inputmode="decimal" id="elevation"></div>
+<div class="field"><label for="rpe">RPE / esfuerzo (1-10)</label><input type="text" inputmode="decimal" id="rpe"></div>
+</div>
+<details><summary>Minutos por zonas de FC (opcional)</summary>
+<div class="row">
+<div class="field"><label for="z1">Z1</label><input type="text" inputmode="decimal" id="z1"></div>
+<div class="field"><label for="z2">Z2</label><input type="text" inputmode="decimal" id="z2"></div>
+<div class="field"><label for="z3">Z3</label><input type="text" inputmode="decimal" id="z3"></div>
+<div class="field"><label for="z4">Z4</label><input type="text" inputmode="decimal" id="z4"></div>
+<div class="field"><label for="z5">Z5</label><input type="text" inputmode="decimal" id="z5"></div>
+</div>
+</details>
+<label for="notes">Notas / sensaciones</label><textarea id="notes" placeholder="Sueño, molestias, terreno, sensaciones, series realizadas..."></textarea>
 <div class="row" style="margin-top:12px"><button class="primary" type="submit">Guardar entrenamiento</button><button class="secondary" type="button" id="calcPace">Calcular ritmo</button></div>
 </form></div>
 </section>
-<section id="recovery" class="view"><div class="grid two"><div class="card"><h2>Chequeo de recuperación</h2><form id="recoveryForm"><div class="row"><div><label>Fecha</label><input type="date" id="recDate" required></div><div><label>Sueño (h)</label><input type="number" step="0.1" id="sleep"></div></div><div class="row"><div><label>Calidad sueño (1–5)</label><input type="number" min="1" max="5" id="sleepQuality"></div><div><label>Fatiga (1–5)</label><input type="number" min="1" max="5" id="fatigue"></div><div><label>Dolor muscular (1–5)</label><input type="number" min="1" max="5" id="soreness"></div></div><div class="row"><div><label>Estrés (1–5)</label><input type="number" min="1" max="5" id="stress"></div><div><label>FC reposo hoy</label><input type="number" id="todayRestHr"></div><div><label>Motivación (1–5)</label><input type="number" min="1" max="5" id="motivation"></div></div><button class="primary" type="submit">Guardar chequeo</button></form></div><div class="card"><h2>Estado orientativo</h2><div id="readiness"></div></div></div><div class="card" style="margin-top:12px"><h3>Últimos chequeos</h3><div id="recoveryList"></div></div></section>
-<section id="profile" class="view"><div class="card"><h2>Perfil, evolución corporal y zonas</h2><form id="profileForm"><div class="row"><div><label>Altura (cm)</label><input type="number" id="height"></div><div><label>Peso actual (kg)</label><input type="number" step="0.1" id="weight"></div><div><label>Año de nacimiento</label><input type="number" id="birthYear"></div></div><div class="row"><div><label>FC reposo habitual</label><input type="number" id="restHr"></div><div><label>FC máxima conocida</label><input type="number" id="knownMaxHr"></div><div><label>Cálculo de zonas</label><select id="zoneMethod"><option value="hrr">Reserva de FC (Karvonen)</option><option value="max">% de FC máxima</option></select></div></div><p class="muted">La FC máxima medida es preferible a una estimación por edad. Las zonas son orientativas.</p><button class="primary" type="submit">Actualizar perfil</button></form><div id="weightLog" style="margin-top:14px"></div></div></section>
+
+<section id="recovery" class="view">
+<div class="grid two">
+<div class="card"><h2>Chequeo de recuperación</h2>
+<form id="recoveryForm">
+<div class="row">
+<div class="field"><label for="recDate">Fecha</label><input type="date" id="recDate" required></div>
+<div class="field"><label for="sleep">Sueño (h)</label><input type="text" inputmode="decimal" id="sleep"></div>
+</div>
+<div class="row">
+<div class="field"><label for="sleepQuality">Calidad sueño (1–5)</label><input type="text" inputmode="decimal" id="sleepQuality"></div>
+<div class="field"><label for="fatigue">Fatiga (1–5)</label><input type="text" inputmode="decimal" id="fatigue"></div>
+<div class="field"><label for="soreness">Dolor muscular (1–5)</label><input type="text" inputmode="decimal" id="soreness"></div>
+</div>
+<div class="row">
+<div class="field"><label for="stress">Estrés (1–5)</label><input type="text" inputmode="decimal" id="stress"></div>
+<div class="field"><label for="todayRestHr">FC reposo hoy</label><input type="text" inputmode="decimal" id="todayRestHr"></div>
+<div class="field"><label for="motivation">Motivación (1–5)</label><input type="text" inputmode="decimal" id="motivation"></div>
+</div>
+<button class="primary" type="submit">Guardar chequeo</button>
+</form></div>
+<div class="card"><h2>Estado orientativo</h2><div id="readiness"></div></div>
+</div>
+<div class="card" style="margin-top:12px"><h3>Últimos chequeos</h3><div id="recoveryList"></div></div>
+</section>
+
+<section id="profile" class="view">
+<div class="card"><h2>Perfil, evolución corporal y zonas</h2>
+<form id="profileForm">
+<div class="row">
+<div class="field"><label for="height">Altura (cm)</label><input type="text" inputmode="decimal" id="height"></div>
+<div class="field"><label for="weight">Peso actual (kg)</label><input type="text" inputmode="decimal" id="weight"></div>
+<div class="field"><label for="birthYear">Año de nacimiento</label><input type="text" inputmode="numeric" id="birthYear"></div>
+</div>
+<div class="row">
+<div class="field"><label for="restHr">FC reposo habitual</label><input type="text" inputmode="decimal" id="restHr"></div>
+<div class="field"><label for="knownMaxHr">FC máxima conocida</label><input type="text" inputmode="decimal" id="knownMaxHr"></div>
+<div class="field"><label for="zoneMethod">Cálculo de zonas FC</label><select id="zoneMethod"><option value="hrr">Reserva de FC (Karvonen)</option><option value="max">% de FC máxima</option></select></div>
+</div>
+<div class="row">
+<div class="field"><label for="ftp">Potencia umbral / FTP running (W)</label><input type="text" inputmode="decimal" id="ftp"></div>
+</div>
+<p class="muted" id="ftpHint"></p>
+<p class="muted">La FC máxima medida es preferible a una estimación por edad. Las zonas son orientativas.</p>
+<button class="primary" type="submit">Actualizar perfil</button>
+</form>
+<div id="weightLog" style="margin-top:14px"></div>
+</div>
+</section>
+
 <section id="history" class="view"><div class="card"><h2>Historial</h2><div id="historyList" class="list"></div></div></section>
-<section id="data" class="view"><div class="card"><h2>Copias y exportación</h2><p class="muted">Los datos se guardan en este dispositivo. Haz copias si son importantes.</p><div class="row"><button class="secondary" id="exportJson">Exportar JSON</button><button class="secondary" id="exportCsv">Exportar entrenos CSV</button><button class="secondary" id="exportRecovery">Exportar recuperación CSV</button><label class="secondary" style="text-align:center;cursor:pointer;margin:0">Importar JSON<input id="importJson" type="file" accept="application/json" style="display:none"></label><button class="secondary danger" id="clearAll">Borrar todo</button></div></div><div class="card" style="margin-top:12px"><h3>Cómo se calcula</h3><p class="muted"><b>Carga sRPE</b> = minutos × RPE. <b>Monotony</b> = media diaria de 7 días ÷ variabilidad. <b>Strain</b> = carga semanal × monotony. <b>Aguda/crónica</b> compara 7 días con la media de las 4 semanas anteriores. Son señales orientativas, no diagnósticos.</p></div></section>
+
+<section id="data" class="view">
+<div class="card"><h2>Copias y exportación</h2><p class="muted">Los datos se guardan en este dispositivo. Haz copias si son importantes.</p>
+<div class="row">
+<button class="secondary" id="exportJson">Exportar JSON</button>
+<button class="secondary" id="exportCsv">Exportar entrenos CSV</button>
+<button class="secondary" id="exportRecovery">Exportar recuperación CSV</button>
+<label class="secondary" style="text-align:center;cursor:pointer;margin:0">Importar JSON<input id="importJson" type="file" accept="application/json" style="display:none"></label>
+<button class="secondary danger" id="clearAll">Borrar todo</button>
+</div>
+</div>
+<div class="card" style="margin-top:12px"><h3>Cómo se calcula</h3><p class="muted"><b>Carga sRPE</b> = minutos × RPE, calculada solo con sesiones de running/trail/ciclismo/caminar (la fuerza se cuenta aparte). <b>Monotony</b> = media diaria de 7 días ÷ variabilidad. <b>Strain</b> = carga semanal × monotony. <b>Aguda/crónica</b> compara 7 días con la media de las 4 semanas anteriores. <b>Zonas de potencia</b> se calculan sobre tu FTP de running (perfil). Son señales orientativas, no diagnósticos.</p></div>
+</section>
+
 </main>
 <script>
-const KEY='trainlab-data-v1';
-let db=JSON.parse(localStorage.getItem(KEY)||'{"profile":{},"weights":[],"sessions":[]}');
+/* ===== TrainLab — lógica única (sustituye a script clásico + enhanced.js) ===== */
+const KEY='trainlab-data-v1'; // misma clave que v3: no se pierden datos al actualizar
+let db=JSON.parse(localStorage.getItem(KEY)||'{"profile":{},"weights":[],"sessions":[],"recovery":[]}');
+db.recovery=db.recovery||[];
+db.profile.zoneMethod=db.profile.zoneMethod||'hrr';
 const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
 const $=id=>document.getElementById(id);
+const CARDIO=['Running','Trail','Ciclismo','Caminar'];
+
+/* ---------- helpers de parseo/validación ---------- */
+// admite coma o punto decimal (teclado español)
+function toNum(v){
+  if(v==null)return null;
+  let s=String(v).trim().replace(',','.');
+  if(s==='')return null;
+  let n=+s;
+  return isFinite(n)?n:null;
+}
+function n(id){return toNum($(id).value)}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function clampWarn(val,min,max,label,warnings){
+  if(val==null)return val;
+  if(val<min){warnings.push(`${label} ajustado al mínimo razonable (${min})`);return min}
+  if(val>max){warnings.push(`${label} ajustado al máximo razonable (${max})`);return max}
+  return val;
+}
 function paceStr(min){if(!isFinite(min)||min<=0)return '—';let m=Math.floor(min),s=Math.round((min-m)*60);if(s===60){m++;s=0}return `${m}:${String(s).padStart(2,'0')}`}
-function parsePace(s){if(!s)return null;let p=String(s).split(':');if(p.length===2)return +p[0]+(+p[1]/60);let n=+s;return isFinite(n)?n:null}
-function render(){renderKpis();renderInsights();renderHistory();renderProfile();drawCharts()}
-function renderKpis(){const s=db.sessions, total=s.reduce((a,x)=>a+(+x.distance||0),0), mins=s.reduce((a,x)=>a+(+x.duration||0),0);const avg=total?mins/total:null;const vo=s.filter(x=>x.vo2max).slice(-1)[0]?.vo2max;const w=db.weights.at(-1)?.weight; $('kpis').innerHTML=[['Sesiones',s.length],['Distancia',total.toFixed(1)+' km'],['Ritmo global',paceStr(avg)+' /km'],['VO₂max',vo||'—'],['Peso',w? w+' kg':'—']].map(x=>`<div class="kpi"><span class="muted">${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}
-function renderInsights(){const s=db.sessions;let out=[];if(s.length<3)out.push('<div class="insight">Registra al menos 3 entrenamientos para empezar a detectar tendencias útiles.</div>');else{let last=s.slice(-3),prev=s.slice(-6,-3);let lp=last.reduce((a,x)=>a+x.duration/x.distance,0)/last.length;let pp=prev.length?prev.reduce((a,x)=>a+x.duration/x.distance,0)/prev.length:null;if(pp){let change=(lp-pp)/pp*100;if(change<-2)out.push(`<div class="insight good">Tu ritmo medio de las últimas 3 sesiones ha mejorado aproximadamente un ${Math.abs(change).toFixed(1)}% respecto a las 3 anteriores.</div>`);else if(change>3)out.push(`<div class="insight warn">El ritmo se ha ralentizado un ${change.toFixed(1)}%. Puede ser fatiga, terreno más exigente o cambio de intensidad; revisa RPE, desnivel y frecuencia cardiaca antes de interpretarlo como pérdida de forma.</div>`)}let high=s.slice(-4).filter(x=>+x.rpe>=8).length;if(high>=3)out.push('<div class="insight warn">Has acumulado varias sesiones de esfuerzo alto. Conviene alternar carga y recuperación para evitar que toda la semana se convierta en trabajo intenso.</div>');let cad=s.filter(x=>x.cadence).slice(-5);if(cad.length>=3){let av=cad.reduce((a,x)=>a+(+x.cadence),0)/cad.length;out.push(`<div class="insight">Cadencia media reciente: <b>${av.toFixed(0)} spm</b>. No hay una cadencia universal “correcta”: compárala sobre todo contigo mismo a ritmos y terrenos similares.</div>`)}let vo=s.filter(x=>x.vo2max);if(vo.length>=2){let d=vo.at(-1).vo2max-vo[0].vo2max;out.push(`<div class="insight">Evolución de VO₂max registrada: <b>${d>=0?'+':''}${(+d).toFixed(1)}</b>. Úsalo como tendencia, especialmente si proviene siempre del mismo dispositivo.</div>`)}}
-$('insights').innerHTML=out.join('')}
-function renderHistory(){let s=[...db.sessions].reverse();$('historyList').innerHTML=s.length?s.map((x,i)=>`<div class="item"><div class="row"><b>${x.date} · ${x.activity}</b><span class="pill">${x.distance} km</span></div><div>${paceStr(x.duration/x.distance)}/km · ${x.duration} min ${x.rpe?`· RPE ${x.rpe}`:''}</div><div class="muted">${x.cadence?`Cadencia ${x.cadence} spm · `:''}${x.power?`${x.power} W · `:''}${x.hrAvg?`FC ${x.hrAvg} ppm · `:''}${x.elevation?`+${x.elevation} m`:''}</div>${x.notes?`<div class="tiny">${x.notes}</div>`:''}<button class="secondary tiny" onclick="delSession(${s.length-1-i})">Eliminar</button></div>`).join(''):'<p class="muted">Aún no hay entrenamientos.</p>'}
-window.delSession=i=>{if(confirm('¿Eliminar este entrenamiento?')){db.sessions.splice(i,1);save();render()}}
-function renderProfile(){let p=db.profile;$('height').value=p.height||'';$('weight').value='';$('restHr').value=p.restHr||'';$('knownMaxHr').value=p.knownMaxHr||'';let w=db.weights;$('weightLog').innerHTML=w.length?'<h3>Evolución del peso</h3>'+w.slice(-8).reverse().map(x=>`<div class="muted">${x.date}: <b>${x.weight} kg</b></div>`).join(''):''}
-function chart(canvasId,vals,labelFn){let c=$(canvasId),ctx=c.getContext('2d'),dpr=devicePixelRatio||1,w=c.clientWidth,h=260;c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);if(!vals.length){ctx.fillText('Sin datos',10,20);return}let pad=34,min=Math.min(...vals),max=Math.max(...vals);if(min===max){min*=.95;max*=1.05}ctx.strokeStyle='#d1d5db';ctx.beginPath();ctx.moveTo(pad,10);ctx.lineTo(pad,h-pad);ctx.lineTo(w-10,h-pad);ctx.stroke();ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.beginPath();vals.forEach((v,i)=>{let x=pad+(w-pad-18)*(vals.length===1?.5:i/(vals.length-1)),y=10+(h-pad-18)*(1-(v-min)/(max-min));i?ctx.lineTo(x,y):ctx.moveTo(x,y);ctx.fillStyle='#111827';ctx.fillText(labelFn(v),Math.max(2,x-15),Math.max(12,y-7))});ctx.stroke()}
+function parsePace(s){if(!s)return null;let p=String(s).trim().replace(',','.').split(':');if(p.length===2)return (+p[0])+(+p[1]/60);let x=toNum(s);return x}
+function iso(d){return d.toISOString().slice(0,10)}
+function ld(x){return (+x.duration||0)*(+x.rpe||0)} // carga sRPE de una sesión
+
+/* ---------- carga / ACWR (solo disciplinas "cardio") ---------- */
+function recDays(list,days,offset=0){
+  let end=new Date();end.setDate(end.getDate()-offset);
+  let start=new Date(end);start.setDate(start.getDate()-days+1);
+  return list.filter(x=>{let d=new Date(x.date+'T12:00:00');return d>=start&&d<=end});
+}
+function loadMetrics(list){
+  let acute=recDays(list,7).reduce((a,x)=>a+ld(x),0);
+  let daily=[];
+  for(let i=0;i<7;i++){let d=new Date();d.setDate(d.getDate()-i);daily.push(list.filter(x=>x.date===iso(d)).reduce((a,x)=>a+ld(x),0))}
+  let mean=daily.reduce((a,x)=>a+x,0)/7;
+  let sd=Math.sqrt(daily.reduce((a,x)=>a+(x-mean)**2,0)/7);
+  let mon=sd?mean/sd:(acute?3:null);
+  let strain=mon?acute*mon:null;
+  let chronic=recDays(list,28,7).reduce((a,x)=>a+ld(x),0)/4;
+  return{acute,mon,strain,acwr:chronic?acute/chronic:null};
+}
+function renderLoad(){
+  let cardio=db.sessions.filter(x=>CARDIO.includes(x.activity));
+  let m=loadMetrics(cardio);
+  let status=m.acwr==null?'Sin base':m.acwr<=1.3?'Equilibrada':m.acwr<=1.5?'Elevada':'Muy elevada';
+  $('loadCards').innerHTML=[
+    ['Carga 7 días',Math.round(m.acute),'min × RPE'],
+    ['Monotony',m.mon!=null?m.mon.toFixed(2):'—',m.mon>2?'Poca variedad':'Variación diaria'],
+    ['Strain',m.strain!=null?Math.round(m.strain):'—','carga × monotony'],
+    ['Aguda/crónica',m.acwr!=null?m.acwr.toFixed(2):'—',status]
+  ].map(x=>'<div class="card"><span class="muted">'+x[0]+'</span><strong style="display:block;font-size:23px">'+x[1]+'</strong><span class="tiny">'+x[2]+'</span></div>').join('');
+
+  // carga de fuerza aparte: no se mezcla con el ACWR de resistencia
+  let strength=recDays(db.sessions.filter(x=>x.activity==='Fuerza'),7);
+  let sMin=strength.reduce((a,x)=>a+(+x.duration||0),0);
+  $('strengthCard').innerHTML = strength.length
+    ? `<div class="card tiny"><b>Fuerza (7 días):</b> ${strength.length} sesión(es) · ${sMin} min. Se cuenta aparte porque no es un estímulo comparable al de carrera para el ACWR.</div>`
+    : '';
+  return m;
+}
+
+/* ---------- zonas de FC ---------- */
+function zoneDefs(){
+  let p=db.profile, max=+p.knownMaxHr||null, rest=+p.restHr||null;
+  if(!max&&p.birthYear)max=208-.7*(new Date().getFullYear()-p.birthYear); // Tanaka
+  if(!max)return null;
+  return [[.5,.6],[.6,.7],[.7,.8],[.8,.9],[.9,1]].map((b,i)=>{
+    let f=q=>p.zoneMethod==='hrr'&&rest?Math.round(rest+(max-rest)*q):Math.round(max*q);
+    return{lo:f(b[0]),hi:f(b[1]),color:['#60a5fa','#22c55e','#eab308','#f97316','#ef4444'][i]};
+  });
+}
+function renderZones(){
+  let z=zoneDefs();
+  if(!z){$('zones').innerHTML='<p class="muted">Añade tu FC máxima en Perfil para calcular las zonas.</p>';return}
+  let mins=[0,0,0,0,0],total=0;
+  recDays(db.sessions,28).forEach(x=>{
+    let a=[1,2,3,4,5].map(i=>+x['z'+i]||0),t=a.reduce((q,v)=>q+v,0);
+    if(t){a.forEach((v,i)=>mins[i]+=v);total+=t}
+    else if(x.hrAvg){let i=z.findIndex(q=>x.hrAvg>=q.lo&&x.hrAvg<=q.hi);i=i<0?(x.hrAvg<z[0].lo?0:4):i;mins[i]+=+x.duration||0;total+=+x.duration||0}
+  });
+  $('zones').innerHTML=z.map((q,i)=>'<div style="display:grid;grid-template-columns:35px 1fr 85px;gap:8px;align-items:center;margin:8px 0"><b style="color:'+q.color+'">Z'+(i+1)+'</b><div class="meter"><i style="width:'+(total?mins[i]/total*100:0)+'%;background:'+q.color+'"></i></div><span class="tiny">'+q.lo+'–'+q.hi+' ppm</span></div>').join('')+'<p class="tiny muted">Últimos 28 días. Se estima por FC media si faltan los minutos por zona.</p>';
+}
+
+/* ---------- zonas de potencia (running power, requiere FTP en perfil) ---------- */
+const POWER_BANDS=[[0,.8],[.8,.9],[.9,1],[1,1.1],[1.1,2]];
+const POWER_COLORS=['#60a5fa','#22c55e','#eab308','#f97316','#ef4444'];
+function estimateFtp(){
+  // sugerencia orientativa: mejor potencia media en sesiones de tempo/competición recientes
+  let cand=db.sessions.filter(x=>x.power&&['tempo','race'].includes(x.sessionType)).map(x=>+x.power);
+  return cand.length?Math.round(Math.max(...cand)*0.97):null;
+}
+function renderPowerZones(){
+  let ftp=+db.profile.ftp||null;
+  let hint=$('ftpHint');
+  if(!ftp){
+    let est=estimateFtp();
+    hint.textContent=est?`Sugerencia orientativa a partir de tus sesiones de tempo/competición: ~${est} W. Confírmalo tú antes de usarlo.`:'';
+  } else hint.textContent='';
+  if(!ftp){$('powerZones').innerHTML='<p class="muted">Añade tu FTP de running en Perfil para ver las zonas de potencia.</p>';return}
+  let bands=POWER_BANDS.map((b,i)=>({lo:Math.round(ftp*b[0]),hi:b[1]>=2?null:Math.round(ftp*b[1]),color:POWER_COLORS[i]}));
+  let mins=[0,0,0,0,0],total=0;
+  recDays(db.sessions,28).filter(x=>x.power).forEach(x=>{
+    let p=+x.power,i=bands.findIndex(b=>p>=b.lo&&(b.hi==null||p<b.hi));
+    i=i<0?4:i;mins[i]+=+x.duration||0;total+=+x.duration||0;
+  });
+  $('powerZones').innerHTML=bands.map((q,i)=>'<div style="display:grid;grid-template-columns:35px 1fr 100px;gap:8px;align-items:center;margin:8px 0"><b style="color:'+q.color+'">Z'+(i+1)+'</b><div class="meter"><i style="width:'+(total?mins[i]/total*100:0)+'%;background:'+q.color+'"></i></div><span class="tiny">'+q.lo+(q.hi?'–'+q.hi:'+')+' W</span></div>').join('')+'<p class="tiny muted">Últimos 28 días, por potencia media de sesión (no minuto a minuto). FTP actual: '+ftp+' W.</p>';
+}
+
+/* ---------- mejores marcas, separadas por terreno ---------- */
+function renderPBs(){
+  let dists=[1,5,10,21.1,42.2];
+  let flatEnough=x=>!x.elevation||(x.elevation/x.distance)<=15; // ~15 m/km ≈ terreno llano
+  let road=db.sessions.filter(x=>x.activity==='Running'&&x.distance&&x.duration&&flatEnough(x));
+  let trail=db.sessions.filter(x=>(x.activity==='Trail'||(x.activity==='Running'&&!flatEnough(x)))&&x.distance&&x.duration);
+  function block(list,title,note){
+    let rows=dists.map(d=>{
+      let x=list.filter(q=>Math.abs(q.distance-d)/d<=.04).sort((a,b)=>a.duration/a.distance-b.duration/b.distance)[0];
+      let name=d===21.1?'Media maratón':d===42.2?'Maratón':d+' km';
+      return '<div class="item"><b>'+name+'</b><span style="float:right">'+(x?paceStr(x.duration/x.distance)+'/km · '+escapeHtml(x.date):'—')+'</span></div>';
+    }).join('');
+    return '<div class="subtitle">'+title+'</div>'+rows+(note?'<p class="tiny muted">'+note+'</p>':'');
+  }
+  $('pbs').innerHTML=
+    block(road,'Asfalto / pista (terreno llano)')+
+    block(trail,'Trail / desnivel notable','No comparable directamente con marcas en llano: el desnivel cambia el esfuerzo real.');
+}
+
+/* ---------- recuperación / readiness ---------- */
+function ready(){
+  let r=db.recovery.at(-1);
+  if(!r)return null;
+  let s=100,why=[];
+  if(r.sleep&&r.sleep<7){s-=Math.min(20,(7-r.sleep)*8);why.push('sueño corto')}
+  if(r.sleepQuality)s-=(5-r.sleepQuality)*5;
+  if(r.fatigue){s-=(r.fatigue-1)*6;if(r.fatigue>=4)why.push('fatiga alta')}
+  if(r.soreness){s-=(r.soreness-1)*6;if(r.soreness>=4)why.push('dolor muscular alto')}
+  if(r.stress)s-=(r.stress-1)*4;
+  if(r.motivation)s-=(5-r.motivation)*3;
+  if(r.todayRestHr&&db.profile.restHr&&r.todayRestHr-db.profile.restHr>=7){s-=12;why.push('FC en reposo elevada')}
+  return{score:Math.max(0,Math.round(s)),why};
+}
+function renderRecoveryPanel(){
+  let q=ready();
+  $('readiness').innerHTML=!q?'<p class="muted">Completa un chequeo para obtener una lectura orientativa.</p>':
+    '<div class="insight '+(q.score>=75?'good':q.score>=55?'warn':'alert')+'"><b>'+q.score+'/100 · '+(q.score>=75?'Buena disposición general':q.score>=55?'Ajusta la intensidad':'Prioriza recuperación')+'</b><div class="meter"><i style="width:'+q.score+'%"></i></div><p>'+(q.why.length?'Factores: '+q.why.map(escapeHtml).join(', ')+'.':'Sin señales negativas destacadas.')+'</p><span class="tiny">No sustituye una valoración sanitaria.</span></div>';
+  $('recoveryList').innerHTML=[...db.recovery].reverse().slice(0,8).map(x=>
+    '<div class="item"><b>'+escapeHtml(x.date)+'</b> · sueño '+(x.sleep??'—')+' h · fatiga '+(x.fatigue??'—')+'/5 · dolor '+(x.soreness??'—')+'/5</div>'
+  ).join('')||'<p class="muted">Aún no hay chequeos.</p>';
+}
+
+/* ---------- KPIs, insights, historial, perfil, gráficos ---------- */
+function renderKpis(){
+  let s=db.sessions,total=s.reduce((a,x)=>a+(+x.distance||0),0),mins=s.reduce((a,x)=>a+(+x.duration||0),0);
+  let avg=total?mins/total:null;
+  let vo=s.filter(x=>x.vo2max).slice(-1)[0]?.vo2max;
+  let w=db.weights.at(-1)?.weight;
+  $('kpis').innerHTML=[['Sesiones',s.length],['Distancia',total.toFixed(1)+' km'],['Ritmo global',paceStr(avg)+' /km'],['VO₂max',vo||'—'],['Peso',w?w+' kg':'—']]
+    .map(x=>`<div class="kpi"><span class="muted">${x[0]}</span><strong>${escapeHtml(String(x[1]))}</strong></div>`).join('');
+}
+function renderInsights(){
+  let s=db.sessions,out=[];
+  if(s.length<3){out.push('<div class="insight">Registra al menos 3 entrenamientos para empezar a detectar tendencias útiles.</div>');}
+  else{
+    let last=s.slice(-3),prev=s.slice(-6,-3);
+    let lp=last.reduce((a,x)=>a+x.duration/x.distance,0)/last.length;
+    let pp=prev.length?prev.reduce((a,x)=>a+x.duration/x.distance,0)/prev.length:null;
+    if(pp){let change=(lp-pp)/pp*100;
+      if(change<-2)out.push(`<div class="insight good">Tu ritmo medio de las últimas 3 sesiones ha mejorado aproximadamente un ${Math.abs(change).toFixed(1)}% respecto a las 3 anteriores.</div>`);
+      else if(change>3)out.push(`<div class="insight warn">El ritmo se ha ralentizado un ${change.toFixed(1)}%. Puede ser fatiga, terreno más exigente o cambio de intensidad; revisa RPE, desnivel y frecuencia cardiaca antes de interpretarlo como pérdida de forma.</div>`);
+    }
+    let high=s.slice(-4).filter(x=>+x.rpe>=8).length;
+    if(high>=3)out.push('<div class="insight warn">Has acumulado varias sesiones de esfuerzo alto. Conviene alternar carga y recuperación para evitar que toda la semana se convierta en trabajo intenso.</div>');
+    let cad=s.filter(x=>x.cadence).slice(-5);
+    if(cad.length>=3){let av=cad.reduce((a,x)=>a+(+x.cadence),0)/cad.length;out.push(`<div class="insight">Cadencia media reciente: <b>${av.toFixed(0)} spm</b>. No hay una cadencia universal "correcta": compárala sobre todo contigo mismo a ritmos y terrenos similares.</div>`);}
+    let vo=s.filter(x=>x.vo2max);
+    if(vo.length>=2){let d=vo.at(-1).vo2max-vo[0].vo2max;out.push(`<div class="insight">Evolución de VO₂max registrada: <b>${d>=0?'+':''}${(+d).toFixed(1)}</b>. Úsalo como tendencia, especialmente si proviene siempre del mismo dispositivo.</div>`);}
+  }
+  // avisos de carga (solo disciplinas cardio)
+  let m=loadMetrics(db.sessions.filter(x=>CARDIO.includes(x.activity)));
+  if(m.acwr>1.5)out.unshift('<div class="insight alert"><b>Incremento brusco de carga.</b> Reduce volumen o intensidad y revisa la recuperación.</div>');
+  else if(m.acwr>1.3)out.unshift('<div class="insight warn"><b>Carga elevada.</b> Evita encadenar otra sesión exigente si tu recuperación es baja.</div>');
+  if(m.mon>2&&m.acute)out.push('<div class="insight warn"><b>Semana monótona.</b> Alterna carga y descanso.</div>');
+  let q=ready();
+  if(q&&q.score<55)out.unshift('<div class="insight alert">El último chequeo de recuperación es bajo: conviene ajustar el plan de hoy.</div>');
+  $('insights').innerHTML=out.join('');
+}
+function renderHistory(){
+  let s=[...db.sessions].reverse();
+  $('historyList').innerHTML=s.length?s.map((x,i)=>`<div class="item"><div class="row"><b>${escapeHtml(x.date)} · ${escapeHtml(x.activity)}</b><span class="pill">${x.distance} km</span></div><div>${paceStr(x.duration/x.distance)}/km · ${x.duration} min ${x.rpe?`· RPE ${x.rpe}`:''}</div><div class="muted">${x.cadence?`Cadencia ${x.cadence} spm · `:''}${x.power?`${x.power} W · `:''}${x.hrAvg?`FC ${x.hrAvg} ppm · `:''}${x.elevation?`+${x.elevation} m`:''}</div>${x.notes?`<div class="tiny">${escapeHtml(x.notes)}</div>`:''}<button class="secondary tiny" onclick="delSession(${s.length-1-i})">Eliminar</button></div>`).join(''):'<p class="muted">Aún no hay entrenamientos.</p>';
+}
+window.delSession=i=>{if(confirm('¿Eliminar este entrenamiento?')){db.sessions.splice(i,1);save();render()}};
+function renderProfile(){
+  let p=db.profile;
+  $('height').value=p.height||'';$('weight').value='';$('restHr').value=p.restHr||'';$('knownMaxHr').value=p.knownMaxHr||'';
+  $('birthYear').value=p.birthYear||'';$('zoneMethod').value=p.zoneMethod||'hrr';$('ftp').value=p.ftp||'';
+  let w=db.weights;
+  $('weightLog').innerHTML=w.length?'<h3>Evolución del peso</h3>'+w.slice(-8).reverse().map(x=>`<div class="muted">${escapeHtml(x.date)}: <b>${x.weight} kg</b></div>`).join(''):'';
+}
+function chart(canvasId,vals,labelFn){
+  let c=$(canvasId),ctx=c.getContext('2d'),dpr=devicePixelRatio||1,w=c.clientWidth,h=260;
+  c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+  if(!vals.length){ctx.fillText('Sin datos',10,20);return}
+  let pad=34,min=Math.min(...vals),max=Math.max(...vals);
+  if(min===max){min*=.95;max*=1.05}
+  ctx.strokeStyle='#d1d5db';ctx.beginPath();ctx.moveTo(pad,10);ctx.lineTo(pad,h-pad);ctx.lineTo(w-10,h-pad);ctx.stroke();
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.beginPath();
+  vals.forEach((v,i)=>{let x=pad+(w-pad-18)*(vals.length===1?.5:i/(vals.length-1)),y=10+(h-pad-18)*(1-(v-min)/(max-min));i?ctx.lineTo(x,y):ctx.moveTo(x,y);ctx.fillStyle='#111827';ctx.fillText(labelFn(v),Math.max(2,x-15),Math.max(12,y-7))});
+  ctx.stroke();
+}
 function drawCharts(){let s=db.sessions.slice(-10);chart('paceChart',s.map(x=>x.duration/x.distance),v=>paceStr(v));chart('distChart',s.map(x=>+x.distance),v=>v.toFixed(1))}
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active');if(b.dataset.tab==='dashboard')setTimeout(drawCharts,20)})
-$('date').value=new Date().toISOString().slice(0,10);
-$('calcPace').onclick=()=>{let d=+$('distance').value,t=+$('duration').value;if(d&&t)$('avgPace').value=paceStr(t/d)};
-$('sessionForm').onsubmit=e=>{e.preventDefault();let d=+$('distance').value,t=+$('duration').value;db.sessions.push({date:$('date').value,activity:$('activity').value,distance:d,duration:t,avgPace:parsePace($('avgPace').value)||t/d,maxPace:parsePace($('maxPace').value),cadence:+$('cadence').value||null,power:+$('power').value||null,vo2max:+$('vo2max').value||null,hrAvg:+$('hrAvg').value||null,hrMax:+$('hrMax').value||null,elevation:+$('elevation').value||null,rpe:+$('rpe').value||null,notes:$('notes').value});db.sessions.sort((a,b)=>a.date.localeCompare(b.date));save();e.target.reset();$('date').value=new Date().toISOString().slice(0,10);render();alert('Entrenamiento guardado')}
-$('profileForm').onsubmit=e=>{e.preventDefault();db.profile.height=+$('height').value||null;db.profile.restHr=+$('restHr').value||null;db.profile.knownMaxHr=+$('knownMaxHr').value||null;let w=+$('weight').value;if(w)db.weights.push({date:new Date().toISOString().slice(0,10),weight:w});save();render();alert('Perfil actualizado')}
+
+function render(){
+  renderKpis();
+  renderLoad();
+  renderInsights();
+  renderZones();
+  renderPowerZones();
+  renderPBs();
+  renderRecoveryPanel();
+  renderHistory();
+  renderProfile();
+  drawCharts();
+}
+
+/* ---------- navegación ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button,.view').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');$(b.dataset.tab).classList.add('active');
+  if(b.dataset.tab==='dashboard')setTimeout(drawCharts,20);
+});
+
+/* ---------- formulario de entreno ---------- */
+$('date').value=iso(new Date());
+$('calcPace').onclick=()=>{let d=n('distance'),t=n('duration');if(d&&t)$('avgPace').value=paceStr(t/d)};
+$('sessionForm').onsubmit=e=>{
+  e.preventDefault();
+  let warnings=[];
+  let d=n('distance'),t=n('duration');
+  if(!d||d<=0||!t||t<=0){alert('Introduce una distancia y un tiempo válidos (mayores que 0).');return}
+  let rpe=clampWarn(n('rpe'),1,10,'RPE',warnings);
+  let hrAvg=clampWarn(n('hrAvg'),30,230,'FC media',warnings);
+  let hrMax=clampWarn(n('hrMax'),30,230,'FC máxima',warnings);
+  let cadence=clampWarn(n('cadence'),60,260,'Cadencia',warnings);
+  let vo2max=clampWarn(n('vo2max'),15,95,'VO₂max',warnings);
+  let z=[1,2,3,4,5].map(i=>n('z'+i)||0);
+  db.sessions.push({
+    id:Date.now().toString(36),
+    date:$('date').value,activity:$('activity').value,sessionType:$('sessionType').value,
+    distance:d,duration:t,
+    avgPace:parsePace($('avgPace').value)||(d?t/d:null),
+    maxPace:parsePace($('maxPace').value),
+    cadence,power:n('power'),vo2max,hrAvg,hrMax,
+    elevation:n('elevation')!=null?Math.max(0,n('elevation')):null,
+    rpe,
+    z1:z[0],z2:z[1],z3:z[2],z4:z[3],z5:z[4],
+    notes:$('notes').value.slice(0,1000)
+  });
+  db.sessions.sort((a,b)=>a.date.localeCompare(b.date));
+  save();e.target.reset();$('date').value=iso(new Date());render();
+  alert('Entrenamiento guardado'+(warnings.length?'\n\nAvisos:\n- '+warnings.join('\n- '):''));
+};
+
+/* ---------- formulario de recuperación ---------- */
+$('recDate').value=iso(new Date());
+$('recoveryForm').onsubmit=e=>{
+  e.preventDefault();
+  let warnings=[];
+  let x={
+    date:$('recDate').value,
+    sleep:clampWarn(n('sleep'),0,24,'Sueño',warnings),
+    sleepQuality:clampWarn(n('sleepQuality'),1,5,'Calidad de sueño',warnings),
+    fatigue:clampWarn(n('fatigue'),1,5,'Fatiga',warnings),
+    soreness:clampWarn(n('soreness'),1,5,'Dolor muscular',warnings),
+    stress:clampWarn(n('stress'),1,5,'Estrés',warnings),
+    todayRestHr:clampWarn(n('todayRestHr'),30,120,'FC reposo',warnings),
+    motivation:clampWarn(n('motivation'),1,5,'Motivación',warnings)
+  };
+  db.recovery=db.recovery.filter(r=>r.date!==x.date);
+  db.recovery.push(x);
+  db.recovery.sort((a,b)=>a.date.localeCompare(b.date));
+  save();render();
+  alert('Chequeo guardado'+(warnings.length?'\n\nAvisos:\n- '+warnings.join('\n- '):''));
+};
+
+/* ---------- formulario de perfil ---------- */
+$('profileForm').onsubmit=e=>{
+  e.preventDefault();
+  db.profile.height=n('height');
+  db.profile.restHr=n('restHr');
+  db.profile.knownMaxHr=n('knownMaxHr');
+  db.profile.birthYear=n('birthYear');
+  db.profile.zoneMethod=$('zoneMethod').value;
+  db.profile.ftp=n('ftp');
+  let w=n('weight');
+  if(w)db.weights.push({date:iso(new Date()),weight:w});
+  save();render();
+  alert('Perfil actualizado');
+};
+
+/* ---------- exportación / importación ---------- */
 function download(name,text,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function csv2(rows){return '\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(';')).join('\n')}
 $('exportJson').onclick=()=>download('trainlab-backup.json',JSON.stringify(db,null,2),'application/json');
-$('exportCsv').onclick=()=>{let head=['fecha','actividad','distancia_km','tiempo_min','ritmo_medio','ritmo_max','cadencia_spm','potencia_w','vo2max','fc_media','fc_max','desnivel_m','rpe','notas'];let rows=db.sessions.map(x=>[x.date,x.activity,x.distance,x.duration,paceStr(x.duration/x.distance),x.maxPace?paceStr(x.maxPace):'',x.cadence||'',x.power||'',x.vo2max||'',x.hrAvg||'',x.hrMax||'',x.elevation||'',x.rpe||'',(x.notes||'').replaceAll('"','""')]);download('entrenamientos.csv',[head,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n'),'text/csv')}
-$('importJson').onchange=async e=>{try{let x=JSON.parse(await e.target.files[0].text());if(!x.sessions||!x.profile)throw 0;db=x;save();render();alert('Datos importados')}catch{alert('Archivo no válido')}};
-$('clearAll').onclick=()=>{if(confirm('Esto borrará todos los datos de este dispositivo.')){db={profile:{},weights:[],sessions:[]};save();render()}}
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');render();
-</script><script src="enhanced.js"></script>
+$('exportCsv').onclick=()=>download('entrenamientos-trainlab.csv',csv2([
+  ['fecha','actividad','tipo','distancia_km','tiempo_min','ritmo','cadencia','potencia_w','vo2max','fc_media','fc_max','desnivel','rpe','carga_srpe','z1','z2','z3','z4','z5','notas'],
+  ...db.sessions.map(x=>[x.date,x.activity,x.sessionType||'',x.distance,x.duration,paceStr(x.duration/x.distance),x.cadence,x.power,x.vo2max,x.hrAvg,x.hrMax,x.elevation,x.rpe,ld(x),x.z1,x.z2,x.z3,x.z4,x.z5,x.notes])
+]),'text/csv;charset=utf-8');
+$('exportRecovery').onclick=()=>download('recuperacion-trainlab.csv',csv2([
+  ['fecha','sueno_h','calidad_sueno','fatiga','dolor','estres','fc_reposo','motivacion'],
+  ...db.recovery.map(x=>[x.date,x.sleep,x.sleepQuality,x.fatigue,x.soreness,x.stress,x.todayRestHr,x.motivation])
+]),'text/csv;charset=utf-8');
+$('importJson').onchange=async e=>{
+  try{
+    let x=JSON.parse(await e.target.files[0].text());
+    if(!Array.isArray(x.sessions)||typeof x.profile!=='object')throw 0;
+    db={profile:{zoneMethod:'hrr'},weights:[],sessions:[],recovery:[],...x};
+    db.recovery=db.recovery||[];
+    save();render();
+    alert('Datos importados');
+  }catch{alert('Archivo no válido')}
+};
+$('clearAll').onclick=()=>{if(confirm('Esto borrará todos los datos de este dispositivo.')){db={profile:{zoneMethod:'hrr'},weights:[],sessions:[],recovery:[]};save();render()}};
+
+/* ---------- arranque ---------- */
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+render();
+
+</script>
 </body></html>
